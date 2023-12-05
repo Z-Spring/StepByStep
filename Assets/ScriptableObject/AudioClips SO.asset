@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd1e1c31a8cf16e46a269f12ea3bd373, type: 3}
+  m_Name: AudioClips SO
+  m_EditorClassIdentifier: 
+  countDownClips:
+  - {fileID: 8300000, guid: 942c1f28c71c94a4bbe7b43d96b90423, type: 3}
+  - {fileID: 8300000, guid: 7a767dca8f46f254fa8b64f7a7b04cfd, type: 3}
+  successClip: {fileID: 8300000, guid: 572d77301990eef40bd125cda5efacf9, type: 3}
+  failClip: {fileID: 8300000, guid: 92e44dc7ec9c01543b8200943a5b0dd1, type: 3}
+  jumpClip: {fileID: 8300000, guid: 408bd62b2f879c04e9253d8e4dbf3685, type: 3}
+  scoreComputeClip: {fileID: 0}
+  fireworkClip: {fileID: 0}
+  clickButtonClip: {fileID: 8300000, guid: 716e939ab8ac9e940b25ff5aafee41bc, type: 3}
