@@ -1,14 +1,21 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class PressPath : MonoBehaviour
 {
     public static PressPath Instance { get; private set; }
 
-    private List<string> pressPathList;
     private int randomPressPathNumber;
+    PressData[] pressData;
+
     [Serializable]
     public struct PressData
     {
@@ -26,22 +33,46 @@ public class PressPath : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        pressPathList = new List<string>();
-        string configFilePath = Path.Combine(Application.dataPath, "ConfigFiles");
-        var files = Directory.EnumerateFiles(configFilePath, "*.json");
-        foreach (string file in files)
-        {
-            pressPathList.Add(file);
-        }
-        randomPressPathNumber = UnityEngine.Random.Range(0, pressPathList.Count);
+        // Addressables.CleanBundleCache();
+        CheckPathFiles();
     }
-    
+
+    void CheckPathFiles()
+    {
+        string configFilePath = Path.Combine(Application.persistentDataPath, "PathFiles");
+        if (!Directory.Exists(configFilePath))
+        {
+            Directory.CreateDirectory(configFilePath);
+            StartCoroutine(GetPathFiles(configFilePath));
+        }
+        else
+        {
+            var files = Directory.EnumerateFiles(configFilePath, "*.json").ToList();
+            randomPressPathNumber = UnityEngine.Random.Range(0, files.Count);
+            string text = File.ReadAllText(files[randomPressPathNumber]);
+            PressDataArray dataArray = JsonUtility.FromJson<PressDataArray>(text);
+            pressData = dataArray.pressData;
+        }
+    }
+
+    IEnumerator GetPathFiles(string configFilePath)
+    {
+        var asyncOperationHandle = Addressables.LoadAssetsAsync<TextAsset>("path", null);
+        yield return asyncOperationHandle;
+        if (asyncOperationHandle.Status == AsyncOperationStatus.Succeeded)
+        {
+            var textAssets = asyncOperationHandle.Result;
+            foreach (var textAsset in textAssets)
+            {
+                string filePath = Path.Combine(configFilePath, textAsset.name + ".json");
+                File.WriteAllText(filePath, textAsset.text);
+            }
+        }
+    }
+
 
     public PressData[] GetDirection()
     {
-        Debug.Log(randomPressPathNumber);
-        string directionData = File.ReadAllText(pressPathList[randomPressPathNumber]);
-        PressDataArray dataArray = JsonUtility.FromJson<PressDataArray>(directionData);
-        return dataArray.pressData;
+        return pressData;
     }
 }
