@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Pool;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +32,6 @@ public class GameManager : MonoBehaviour
     public event EventHandler OnGameSuccess;
     public event EventHandler OnGameFailed;
     public event EventHandler OnGameStarted;
-    
 
 
     public enum SpawnFloorPosition
@@ -66,21 +66,22 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
         floorList = new List<GameObject>();
-
-        // currentGameObject = floorSO.floor;
-        DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().material.color);
-        currentGameObject = floorPrefab;
-        floorList.Add(currentGameObject);
-        OnGameStarted?.Invoke(this, EventArgs.Empty);
     }
 
     private void Start()
     {
+        // DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().material.color);
+        DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().sharedMaterial.color);
+        currentGameObject = floorPrefab;
+        floorList.Add(currentGameObject);
+        OnGameStarted?.Invoke(this, EventArgs.Empty);
+
+
         gameState = GameState.Idle;
-        
+
         GameStartUI.Instance.OnRandomModeChoose += GameStartUI_OnRandomModeChoose;
         GameStartUI.Instance.OnSpecificyModeChoose += GameStartUI_OnSpecificModeChoose;
-        
+
         pressData = PressPath.Instance.GetDirection();
         floorNumber = pressData.Length;
         Debug.Log(pressData.Length);
@@ -88,19 +89,12 @@ public class GameManager : MonoBehaviour
 
     private void GameStartUI_OnRandomModeChoose(object sender, EventArgs e)
     {
-        // gameState = GameState.StartCountDown;
-        // SetGameMode(GameMode.Random);
-        // OnGameStateChange?.Invoke(this, EventArgs.Empty);
         StartCoroutine(IdleTimeWaitCoroutine(GameMode.Random));
     }
 
     private void GameStartUI_OnSpecificModeChoose(object sender, EventArgs e)
     {
-        // gameState = GameState.StartCountDown;
-        // SetGameMode(GameMode.Specific);
-        // OnGameStateChange?.Invoke(this, EventArgs.Empty);
         StartCoroutine(IdleTimeWaitCoroutine(GameMode.Specific));
-
     }
 
     private void Update()
@@ -108,8 +102,6 @@ public class GameManager : MonoBehaviour
         switch (gameState)
         {
             case GameState.Idle:
-                // gameState = GameState.StartCountDown;
-                // OnGameStateChange?.Invoke(this, EventArgs.Empty);
                 break;
             case GameState.StartCountDown:
                 countDownTimer -= Time.deltaTime;
@@ -145,7 +137,7 @@ public class GameManager : MonoBehaviour
     {
         if (gameState == GameState.PLaying)
         {
-            floorMaterialColor = floorList[0].GetComponent<MeshRenderer>().material.color;
+            // floorMaterialColor = floorList[0].GetComponent<MeshRenderer>().sharedMaterial.color;
             spawnFloorTimer -= Time.deltaTime;
             if (spawnFloorTimer < 0)
             {
@@ -154,57 +146,45 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void GameModeChoose(GameMode gameMode)
+    {
+        switch (gameMode)
+        {
+            case GameMode.Random:
+                int randomNumber = UnityEngine.Random.Range(0, 3);
+                SpawnFloorWithRandom(randomNumber);
+                /*spawnFloorTimer = spawnFloorTimerMax;
+                FadeAndDestroyFloor();*/
+                break;
+            case GameMode.Specific:
+                currentDirection++;
+                if (currentDirection >= pressData.Length)
+                {
+                    OnGameSuccess?.Invoke(this, EventArgs.Empty);
+                    gameState = GameState.GameOver;
+                }
+                else
+                {
+                    var x = pressData[currentDirection].direction;
+                    SpawnFloorWithPressPath(x);
+                    // currentDirection = (currentDirection + 1) % pressData.Length;
+                    /*spawnFloorTimer = spawnFloorTimerMax;
+                    FadeAndDestroyFloor();*/
+                }
 
+                break;
+        }
+
+        spawnFloorTimer = spawnFloorTimerMax;
+        FadeAndDestroyFloor();
+    }
+
+//todo: 1. 改为对象池技术 2. 上下代码可以重构
     private void SpawnFloorWithRandom(int randomNumber)
     {
         floorPosition = currentGameObject.transform.position;
         spawnFloorPosition = (SpawnFloorPosition)randomNumber;
-
-        switch (spawnFloorPosition)
-        {
-            // z + 
-            case SpawnFloorPosition.Front:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x, 0, floorPosition.z + floorScale),
-                    Quaternion.identity);
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-                // currentGameObject
-                break;
-            // z-
-            case SpawnFloorPosition.Back:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x, 0, floorPosition.z - floorScale),
-                    Quaternion.identity);
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
-                break;
-            // x -
-            case SpawnFloorPosition.Left:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x - floorScale, 0, floorPosition.z),
-                    Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
-                break;
-            // x +
-            case SpawnFloorPosition.Right:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x + floorScale, 0, floorPosition.z), Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
-                break;
-            default:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x, 0, floorPosition.z), Quaternion.identity);
-                break;
-        }
-
+        CheckFloorPosition(spawnFloorPosition);
         floorList.Add(currentGameObject);
         if (floorList.Contains(Player.Instance.GetFloorName()))
         {
@@ -212,65 +192,52 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void SpawnFloorWithPressPath(SpawnFloorPosition spawnFloorPosition)
+    private void SpawnFloorWithPressPath(SpawnFloorPosition pos)
     {
         floorPosition = currentGameObject.transform.position;
-        // spawnFloorPosition = (SpawnFloorPosition)randomNumber;
-
-        switch (spawnFloorPosition)
+        CheckFloorPosition(pos);
+        floorList.Add(currentGameObject);
+        if (floorList.Contains(Player.Instance.GetFloorName()))
+        {
+            floorNumber--;
+        }
+    }
+    
+    void CheckFloorPosition(SpawnFloorPosition pos)
+    {
+        switch (pos)
         {
             // z + 
             case SpawnFloorPosition.Front:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x, 0, floorPosition.z + floorScale),
-                    Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-                // currentGameObject
+                SetFloorPos(floorPosition.x, floorPosition.z + floorScale);
                 break;
             // z-
             case SpawnFloorPosition.Back:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x, 0, floorPosition.z - floorScale),
-                    Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
+                SetFloorPos(floorPosition.x, floorPosition.z - floorScale);
                 break;
             // x -
             case SpawnFloorPosition.Left:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x - floorScale, 0, floorPosition.z),
-                    Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
+                SetFloorPos(floorPosition.x - floorScale, floorPosition.z);
                 break;
             // x +
             case SpawnFloorPosition.Right:
-                currentGameObject = Instantiate(currentGameObject,
-                    new Vector3(floorPosition.x + floorScale, 0, floorPosition.z), Quaternion.identity);
-
-                OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
-                OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
-
+                SetFloorPos(floorPosition.x + floorScale, floorPosition.z);
                 break;
             default:
                 currentGameObject = Instantiate(currentGameObject,
                     new Vector3(floorPosition.x, 0, floorPosition.z), Quaternion.identity);
                 break;
         }
+    }
 
-        floorList.Add(currentGameObject);
-        if (floorList.Contains(Player.Instance.GetFloorName()))
-        {
-            // floorNumber++;
-            // pressData.Length
-            floorNumber--;
-        }
+    void SetFloorPos(float posX, float posZ)
+    {
+        currentGameObject = FloorPool.Instance.GetFloorFromPool();
+        currentGameObject.transform.SetPositionAndRotation(
+            new Vector3(posX, 0, posZ),
+            Quaternion.identity);
+        OnChangeFloorColor?.Invoke(currentGameObject, EventArgs.Empty);
+        OnChangeBloomIntensity?.Invoke(currentGameObject, EventArgs.Empty);
     }
 
     private void FadeAndDestroyFloor()
@@ -280,7 +247,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FadeOut(GameObject floor)
     {
-        Material floorMaterial = floor.GetComponent<MeshRenderer>().material;
+        Material floorMaterial = floor.GetComponent<MeshRenderer>().sharedMaterial;
         Color floorMaterialColor = floorMaterial.color;
         float startAlpha = floorMaterialColor.a;
 
@@ -299,14 +266,10 @@ public class GameManager : MonoBehaviour
         }
 
         floorList.RemoveAt(0);
-        Destroy(floor);
+        // Destroy(floor);
+        FloorPool.Instance.ReturnFloor(floor);
     }
 
-    //todo； 走完后，产生走路的轨迹图或路线图 || GAMEOVER后将路线图展示出来，走过的floor点亮，反之变暗
-    // private void DisPlayPath()
-    // {
-    //     
-    // }
 
     public bool IsGameOver()
     {
@@ -334,9 +297,8 @@ public class GameManager : MonoBehaviour
         {
             return successNumber;
         }
-        return floorNumber;
 
-        
+        return floorNumber;
     }
 
     private void SetGameMode(GameMode gameMode)
@@ -349,35 +311,6 @@ public class GameManager : MonoBehaviour
         return gameMode;
     }
 
-    private void GameModeChoose(GameMode gameMode)
-    {
-        switch (gameMode)
-        {
-            case GameMode.Random:
-                int randomNumber = UnityEngine.Random.Range(0, 3);
-                SpawnFloorWithRandom(randomNumber);
-                spawnFloorTimer = spawnFloorTimerMax;
-                FadeAndDestroyFloor();
-                break;
-            case GameMode.Specific:
-                currentDirection++;
-                if (currentDirection >= pressData.Length)
-                {
-                    OnGameSuccess?.Invoke(this, EventArgs.Empty);
-                    gameState = GameState.GameOver;
-                }
-                else
-                {
-                    var x = pressData[currentDirection].direction;
-                    SpawnFloorWithPressPath(x);
-                    // currentDirection = (currentDirection + 1) % pressData.Length;
-                    spawnFloorTimer = spawnFloorTimerMax;
-                    FadeAndDestroyFloor();
-                }
-
-                break;
-        }
-    }
 
     private IEnumerator IdleTimeWaitCoroutine(GameMode gameMode)
     {
