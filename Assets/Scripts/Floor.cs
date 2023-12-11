@@ -1,15 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Random = System.Random;
 
 public class Floor : MonoBehaviour
 {
     public static Floor Instance { get; private set; }
-
-    private Material spawnedFloorMaterial;
-
+    
     private void Awake()
     {
         Instance = this;
@@ -29,24 +24,23 @@ public class Floor : MonoBehaviour
     {
         GameObject floor = sender as GameObject;
         ChangeFloorColor(floor);
-        // Debug.Log("我的天" + recordFloorColor.Count);
     }
 
 
     private void ChangeFloorColor(GameObject floor)
     {
-        spawnedFloorMaterial = floor.GetComponent<MeshRenderer>().material;
         float hue = UnityEngine.Random.Range(0f, 360f);
         float saturation = UnityEngine.Random.Range(0f, 150f);
         float value = UnityEngine.Random.Range(50f, 100f);
 
         Color color = Color.HSVToRGB(hue / 360f, saturation / 100f, value / 100f);
-        spawnedFloorMaterial.color = color;
-            DisplayFloorPath.Instance.recordFloorColor.Add(color);
-    }
+        var spawnedFloorMaterial = floor.GetComponent<MeshRenderer>().material;
 
-    // public List<Color> GetRecordColor()
-    // {
-    //     return recordFloorColor;
-    // }
+        spawnedFloorMaterial.color = color;
+        spawnedFloorMaterial.SetColor("_EmissionColor", color);
+        if (GameManager.Instance.GetGameMode() == GameManager.GameMode.Specific)
+        {
+            DisplayFloorPath.Instance.recordFloorColor.Add(color);
+        }
+    }
 }
