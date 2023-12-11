@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using Cinemachine;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -36,6 +32,5 @@ public class Background : MonoBehaviour
     {
         int randomColorNumber = Random.Range(0, backgroundColorListLength);
         Camera.main.backgroundColor = backgroundColorList[randomColorNumber];
-        Debug.Log("changeBackground");
     }
 }
