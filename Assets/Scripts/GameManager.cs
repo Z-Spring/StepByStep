@@ -179,7 +179,6 @@ public class GameManager : MonoBehaviour
         FadeAndDestroyFloor();
     }
 
-//todo: 1. 改为对象池技术 2. 上下代码可以重构
     private void SpawnFloorWithRandom(int randomNumber)
     {
         floorPosition = currentGameObject.transform.position;

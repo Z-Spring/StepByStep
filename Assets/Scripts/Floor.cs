@@ -4,7 +4,7 @@ using UnityEngine;
 public class Floor : MonoBehaviour
 {
     public static Floor Instance { get; private set; }
-    
+
     private void Awake()
     {
         Instance = this;

@@ -404,7 +404,7 @@ MonoBehaviour:
   m_LookAt: {fileID: 0}
   m_Follow: {fileID: 955477132}
   m_Lens:
-    FieldOfView: 20.25
+    FieldOfView: 24.81
     OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
@@ -500,7 +500,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 20.25
+  field of view: 24.81
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -941,7 +941,7 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 0
   blendDistance: 0
-  weight: 0.66
+  weight: 0.55
   sharedProfile: {fileID: 11400000, guid: a6560a915ef98420e9faacc1c7438823, type: 2}
 --- !u!4 &832575519
 Transform:
@@ -970,8 +970,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05203af0593cc7e4492ff4488365a4d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bloomIntensity: 1.5
-  bloomDuration: 0.4
+  bloomIntensity: 1.8
+  bloomDuration: 0.5
   bloomNormalIntensity: 0.7
 --- !u!1001 &955477129
 PrefabInstance:
@@ -1670,8 +1670,8 @@ MonoBehaviour:
   m_DeadZoneHeight: 0
   m_DeadZoneDepth: 0
   m_UnlimitedSoftZone: 0
-  m_SoftZoneWidth: 0.19
-  m_SoftZoneHeight: 0.09
+  m_SoftZoneWidth: 0.137
+  m_SoftZoneHeight: 0.075
   m_BiasX: 0
   m_BiasY: 0
   m_CenterOnActivate: 1
@@ -1686,6 +1686,52 @@ MonoBehaviour:
   m_MaximumFOV: 60
   m_MinimumOrthoSize: 1
   m_MaximumOrthoSize: 5000
+--- !u!1 &1621750140
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1621750141}
+  - component: {fileID: 1621750142}
+  m_Layer: 0
+  m_Name: FloorPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1621750141
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621750140}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1621750142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621750140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a944fb1fbea4f4b84d68d48c56b7d22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initFloorNum: 5
+  floorPrefab: {fileID: 1685933497}
 --- !u!1 &1624689619
 GameObject:
   m_ObjectHideFlags: 0

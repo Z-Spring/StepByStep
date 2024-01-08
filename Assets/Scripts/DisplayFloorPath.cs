@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class DisplayFloorPath : MonoBehaviour
 {
     public static DisplayFloorPath Instance { get; private set; }
-    public List<Color> recordFloorColor;
+    public List<Color> recordFloorColor = new();
 
     [SerializeField] private Image floorImage;
     [SerializeField] private Transform displayFloorPathUI;
@@ -27,7 +27,7 @@ public class DisplayFloorPath : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        recordFloorColor = new List<Color>();
+        // recordFloorColor = new List<Color>();
         floorSize = floorImage.rectTransform.rect.width;
         currentFloorImage = floorImage;
         currentFloorImageRect = floorImage.GetComponent<RectTransform>();
