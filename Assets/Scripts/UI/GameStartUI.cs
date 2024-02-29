@@ -1,16 +1,16 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class GameStartUI : MonoBehaviour
 {
     public static GameStartUI Instance { get; private set; }
+    public event Action<GameManager.GameMode> OnGameModeChoose;
 
-    [SerializeField] private Button randomBtn;
-    [SerializeField] private Button sprcificBtn;
-    public event EventHandler OnRandomModeChoose;
-    public event EventHandler OnSpecificyModeChoose;
-
+    [SerializeField] Button randomBtn;
+    [SerializeField] Button specificBtn;
+    GameManager.GameMode gameMode;
 
     private void Awake()
     {
@@ -20,19 +20,25 @@ public class GameStartUI : MonoBehaviour
     private void Start()
     {
         Show();
-        randomBtn.onClick.AddListener(() =>
-        {
-            SoundManager.Instance.PlayClickButtonSound();
-            OnRandomModeChoose?.Invoke(this, EventArgs.Empty);
-            Hide();
-        });
+        randomBtn.onClick.AddListener(ButtonClick);
+        specificBtn.onClick.AddListener(ButtonClick);
+    }
 
-        sprcificBtn.onClick.AddListener(() =>
+    void ButtonClick()
+    {
+        GameObject selectedObject = EventSystem.current.currentSelectedGameObject;
+        SoundManager.Instance.PlayClickButtonSound();
+        if (selectedObject == randomBtn.gameObject)
         {
-            SoundManager.Instance.PlayClickButtonSound();
-            OnSpecificyModeChoose?.Invoke(this, EventArgs.Empty);
-            Hide();
-        });
+            gameMode = GameManager.GameMode.Random;
+        }
+        else if (selectedObject == specificBtn.gameObject)
+        {
+            gameMode = GameManager.GameMode.Specific;
+        }
+
+        OnGameModeChoose?.Invoke(gameMode);
+        Hide();
     }
 
 
@@ -45,6 +51,4 @@ public class GameStartUI : MonoBehaviour
     {
         gameObject.SetActive(true);
     }
-
-
 }
