@@ -1,27 +1,32 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class ResultUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI resultText;
+    [SerializeField] private TextMeshProUGUI newText;
     [SerializeField] private TextMeshProUGUI finalScoreText;
     [SerializeField] private ParticleSystem confetti;
 
+    const string MAX_SCORE = "MaxScore";
+    bool isMaxScore;
+
     private void Start()
     {
+        newText.enabled = false;
+        isMaxScore = false;
         GameManager.Instance.OnGameSuccess += GameManager_OnGameSuccess;
         GameManager.Instance.OnGameFailed += GameManager_OnGameFailed;
-        Hide();
+        HideCurrentGameObject();
     }
 
     private void GameManager_OnGameSuccess(object sender, EventArgs e)
     {
         resultText.text = "SUCCESS";
         finalScoreText.enabled = false;
-        Show();
+        ShowCurrentGameObject();
         SoundManager.Instance.PlaySuccessSound();
         StartCoroutine(ParticleSystemPlayCoroutine());
     }
@@ -30,31 +35,59 @@ public class ResultUI : MonoBehaviour
     {
         if (GameManager.Instance.GetGameMode() == GameManager.GameMode.Random)
         {
-            finalScoreText.text = GameManager.Instance.GetSuccessedNumber().ToString();
-            resultText.text = "FAILED";
-            Show();
-            SoundManager.Instance.PlayFailSound();
-
+            RandomModeFailed();
         }
         else
         {
-            resultText.text = "FAILED";
-            finalScoreText.enabled = false;
-            Show();
-            SoundManager.Instance.PlayFailSound();
+            SuccessModeFailed();
+        }
+    }
 
+    void RandomModeFailed()
+    {
+        resultText.text = "Top Score";
+        finalScoreText.enabled = true;
+        finalScoreText.text = GetMaxScore().ToString();
+        ShowCurrentGameObject();
+        if (isMaxScore)
+        {
+            StartCoroutine(ParticleSystemPlayCoroutine());
+            SoundManager.Instance.PlaySuccessSound();
         }
 
-        
+        SoundManager.Instance.PlayFailSound();
+    }
+
+    int GetMaxScore()
+    {
+        int maxScore = PlayerPrefs.GetInt(MAX_SCORE);
+        if (GameManager.Instance.GetScore() > maxScore)
+        {
+            newText.enabled = true;
+            newText.text = "New!";
+            isMaxScore = true;
+            PlayerPrefs.SetInt(MAX_SCORE, GameManager.Instance.GetScore());
+            return GameManager.Instance.GetScore();
+        }
+
+        return maxScore;
+    }
+
+    void SuccessModeFailed()
+    {
+        resultText.text = "FAILED";
+        finalScoreText.enabled = false;
+        ShowCurrentGameObject();
+        SoundManager.Instance.PlayFailSound();
     }
 
 
-    private void Hide()
+    private void HideCurrentGameObject()
     {
         gameObject.SetActive(false);
     }
 
-    private void Show()
+    private void ShowCurrentGameObject()
     {
         gameObject.SetActive(true);
     }
