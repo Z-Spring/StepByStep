@@ -15,7 +15,7 @@ public class Floor : MonoBehaviour
         GameManager.Instance.OnChangeFloorColor += GameManager_OnChangeFloorColor;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         GameManager.Instance.OnChangeFloorColor -= GameManager_OnChangeFloorColor;
     }
