@@ -11,9 +11,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject floorPrefab;
     [SerializeField] private FloorSO floorSO;
     [SerializeField] private Image floorImage;
+    [SerializeField] float spawnFloorTimerMax = 1f;
+    [SerializeField] float fadeOutDuration = 0.7f;
+    [SerializeField] float waitTimeBeforeCountDown = 2f;
 
     private float spawnFloorTimer;
-    private float spawnFloorTimerMax = 1f;
     private Vector3 floorPosition;
     private float floorScale = 0.6f;
     private GameObject currentGameObject;
@@ -25,6 +27,7 @@ public class GameManager : MonoBehaviour
     private int successNumber;
     private int currentDirection = -1;
     private PressPath.PressData[] pressData;
+    private Action spawnFloorMethod;
 
     public event EventHandler OnChangeFloorColor;
     public event EventHandler OnChangeBloomIntensity;
@@ -36,8 +39,8 @@ public class GameManager : MonoBehaviour
 
     public enum SpawnFloorPosition
     {
-        Front,
-        Back,
+        Up,
+        Down,
         Left,
         Right
     }
@@ -70,31 +73,33 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().material.color);
-        DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().sharedMaterial.color);
+        // DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().sharedMaterial.color);
+        OnChangeFloorColor?.Invoke(floorPrefab, EventArgs.Empty);
         currentGameObject = floorPrefab;
         floorList.Add(currentGameObject);
         OnGameStarted?.Invoke(this, EventArgs.Empty);
 
-
         gameState = GameState.Idle;
 
-        GameStartUI.Instance.OnRandomModeChoose += GameStartUI_OnRandomModeChoose;
-        GameStartUI.Instance.OnSpecificyModeChoose += GameStartUI_OnSpecificModeChoose;
+        GameStartUI.Instance.OnGameModeChoose += GameStartUI_OnGameModeChoose;
 
         pressData = PressPath.Instance.GetDirection();
         floorNumber = pressData.Length;
         Debug.Log(pressData.Length);
     }
 
-    private void GameStartUI_OnRandomModeChoose(object sender, EventArgs e)
+    private void GameStartUI_OnGameModeChoose(GameMode mode)
     {
-        StartCoroutine(IdleTimeWaitCoroutine(GameMode.Random));
+        StartCoroutine(IdleTimeWaitCoroutine(mode));
     }
 
-    private void GameStartUI_OnSpecificModeChoose(object sender, EventArgs e)
+    private IEnumerator IdleTimeWaitCoroutine(GameMode mode)
     {
-        StartCoroutine(IdleTimeWaitCoroutine(GameMode.Specific));
+        yield return new WaitForSeconds(waitTimeBeforeCountDown);
+        gameState = GameState.StartCountDown;
+        SetGameMode(mode);
+        DetermineGameMode();
+        OnGameStateChange?.Invoke(this, EventArgs.Empty);
     }
 
     private void Update()
@@ -137,51 +142,35 @@ public class GameManager : MonoBehaviour
     {
         if (gameState == GameState.PLaying)
         {
-            // floorMaterialColor = floorList[0].GetComponent<MeshRenderer>().sharedMaterial.color;
             spawnFloorTimer -= Time.deltaTime;
             if (spawnFloorTimer < 0)
             {
-                GameModeChoose(gameMode);
+                spawnFloorMethod();
+                ResetSpawnFloorTimer();
+                FadeAndDestroyFloor();
             }
         }
     }
 
-    private void GameModeChoose(GameMode gameMode)
+    private void DetermineGameMode()
     {
         switch (gameMode)
         {
             case GameMode.Random:
-                int randomNumber = UnityEngine.Random.Range(0, 3);
-                SpawnFloorWithRandom(randomNumber);
-                /*spawnFloorTimer = spawnFloorTimerMax;
-                FadeAndDestroyFloor();*/
+                spawnFloorMethod = SpawnFloorWithRandom;
                 break;
             case GameMode.Specific:
-                currentDirection++;
-                if (currentDirection >= pressData.Length)
-                {
-                    OnGameSuccess?.Invoke(this, EventArgs.Empty);
-                    gameState = GameState.GameOver;
-                }
-                else
-                {
-                    var x = pressData[currentDirection].direction;
-                    SpawnFloorWithPressPath(x);
-                    // currentDirection = (currentDirection + 1) % pressData.Length;
-                    /*spawnFloorTimer = spawnFloorTimerMax;
-                    FadeAndDestroyFloor();*/
-                }
-
+                spawnFloorMethod = SpawnFloorWithPressPath;
                 break;
         }
-
-        spawnFloorTimer = spawnFloorTimerMax;
-        FadeAndDestroyFloor();
     }
 
-    private void SpawnFloorWithRandom(int randomNumber)
+
+    private void SpawnFloorWithRandom()
     {
         floorPosition = currentGameObject.transform.position;
+
+        int randomNumber = UnityEngine.Random.Range(0, 4);
         spawnFloorPosition = (SpawnFloorPosition)randomNumber;
         CheckFloorPosition(spawnFloorPosition);
         floorList.Add(currentGameObject);
@@ -191,27 +180,42 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void SpawnFloorWithPressPath(SpawnFloorPosition pos)
+    private void SpawnFloorWithPressPath()
     {
-        floorPosition = currentGameObject.transform.position;
-        CheckFloorPosition(pos);
-        floorList.Add(currentGameObject);
-        if (floorList.Contains(Player.Instance.GetFloorName()))
+        currentDirection++;
+        if (currentDirection >= pressData.Length)
         {
-            floorNumber--;
+            OnGameSuccess?.Invoke(this, EventArgs.Empty);
+            gameState = GameState.GameOver;
+        }
+        else
+        {
+            var pos = pressData[currentDirection].direction;
+            floorPosition = currentGameObject.transform.position;
+            CheckFloorPosition(pos);
+            floorList.Add(currentGameObject);
+            if (floorList.Contains(Player.Instance.GetFloorName()))
+            {
+                floorNumber--;
+            }
         }
     }
-    
+
+    void ResetSpawnFloorTimer()
+    {
+        spawnFloorTimer = spawnFloorTimerMax;
+    }
+
     void CheckFloorPosition(SpawnFloorPosition pos)
     {
         switch (pos)
         {
             // z + 
-            case SpawnFloorPosition.Front:
+            case SpawnFloorPosition.Up:
                 SetFloorPos(floorPosition.x, floorPosition.z + floorScale);
                 break;
             // z-
-            case SpawnFloorPosition.Back:
+            case SpawnFloorPosition.Down:
                 SetFloorPos(floorPosition.x, floorPosition.z - floorScale);
                 break;
             // x -
@@ -249,14 +253,11 @@ public class GameManager : MonoBehaviour
         Material floorMaterial = floor.GetComponent<MeshRenderer>().sharedMaterial;
         Color floorMaterialColor = floorMaterial.color;
         float startAlpha = floorMaterialColor.a;
-
-        const float duration = 0.7f; //淡出所需时间
         float counter = 0;
-
-        while (counter < duration)
+        while (counter < fadeOutDuration)
         {
             counter += Time.deltaTime;
-            float alpha = Mathf.Lerp(startAlpha, 0, counter / duration);
+            float alpha = Mathf.Lerp(startAlpha, 0, counter / fadeOutDuration);
 
             floorMaterialColor = new Color(floorMaterialColor.r, floorMaterialColor.g, floorMaterialColor.b, alpha);
             floorMaterial.color = floorMaterialColor;
@@ -265,7 +266,6 @@ public class GameManager : MonoBehaviour
         }
 
         floorList.RemoveAt(0);
-        // Destroy(floor);
         FloorPool.Instance.ReturnFloor(floor);
     }
 
@@ -290,7 +290,7 @@ public class GameManager : MonoBehaviour
         return countDownTimer;
     }
 
-    public int GetSuccessedNumber()
+    public int GetScore()
     {
         if (gameMode == GameMode.Random)
         {
@@ -300,7 +300,7 @@ public class GameManager : MonoBehaviour
         return floorNumber;
     }
 
-    private void SetGameMode(GameMode gameMode)
+    void SetGameMode(GameMode gameMode)
     {
         this.gameMode = gameMode;
     }
@@ -308,14 +308,5 @@ public class GameManager : MonoBehaviour
     public GameMode GetGameMode()
     {
         return gameMode;
-    }
-
-
-    private IEnumerator IdleTimeWaitCoroutine(GameMode gameMode)
-    {
-        yield return new WaitForSeconds(2f);
-        gameState = GameState.StartCountDown;
-        SetGameMode(gameMode);
-        OnGameStateChange?.Invoke(this, EventArgs.Empty);
     }
 }
