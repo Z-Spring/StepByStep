@@ -41,11 +41,11 @@ public class SocreUI : MonoBehaviour
     private void Update()
     {
         
-        countDownText.text = GameManager.Instance.GetSuccessedNumber().ToString();
-        if (GameManager.Instance.GetSuccessedNumber() != priviousNumber)
+        countDownText.text = GameManager.Instance.GetScore().ToString();
+        if (GameManager.Instance.GetScore() != priviousNumber)
         {
             animator.SetTrigger(Popup);
-            priviousNumber = GameManager.Instance.GetSuccessedNumber();
+            priviousNumber = GameManager.Instance.GetScore();
         }
         
     }
