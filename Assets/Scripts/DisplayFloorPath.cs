@@ -21,7 +21,6 @@ public class DisplayFloorPath : MonoBehaviour
     private bool displayCalled;
     private PressPath.PressData[] presData;
     private int recordFloorColorIndex;
-    
 
 
     private void Awake()
@@ -72,9 +71,9 @@ public class DisplayFloorPath : MonoBehaviour
             SpawnFloorWithPressPath(presData[i].direction);
         }
     }
-    
+
     // 找出这个路线图中中心坐标，然后所有的图像左边都减去这个坐标，这样真个路线图就会居中
-    private void CenterPath() 
+    private void CenterPath()
     {
         float minX = float.MaxValue;
         float maxX = float.MinValue;
@@ -82,7 +81,7 @@ public class DisplayFloorPath : MonoBehaviour
         float maxY = float.MinValue;
 
         // Find the bounds of the path.
-        foreach (RectTransform child in displayFloorPathUI) 
+        foreach (RectTransform child in displayFloorPathUI)
         {
             Vector2 position = child.anchoredPosition;
             minX = Mathf.Min(minX, position.x);
@@ -94,7 +93,7 @@ public class DisplayFloorPath : MonoBehaviour
         // 计算中心坐标
         Vector2 center = new Vector2((minX + maxX) / 2, (minY + maxY) / 2);
 
-        foreach (RectTransform child in displayFloorPathUI) 
+        foreach (RectTransform child in displayFloorPathUI)
         {
             child.anchoredPosition -= center;
         }
@@ -103,19 +102,15 @@ public class DisplayFloorPath : MonoBehaviour
 
     private void SpawnFloorWithPressPath(GameManager.SpawnFloorPosition spawnFloorPosition)
     {
-        Debug.Log(spawnFloorPosition);
-        recordFloorColorIndex++;
-        // floorPosition = currentFloorImage.transform.position;
-        // floorPosition = currentFloorImage.rectTransform.anchoredPosition;
         floorPosition = currentFloorImageRect.anchoredPosition;
         switch (spawnFloorPosition)
         {
             // y + 
-            case GameManager.SpawnFloorPosition.Front:
+            case GameManager.SpawnFloorPosition.Up:
                 InstantiateFloor(new Vector2(floorPosition.x, floorPosition.y + floorSize));
                 break;
             // y -
-            case GameManager.SpawnFloorPosition.Back:
+            case GameManager.SpawnFloorPosition.Down:
                 InstantiateFloor(new Vector2(floorPosition.x, floorPosition.y - floorSize));
                 break;
             // x -
@@ -127,23 +122,29 @@ public class DisplayFloorPath : MonoBehaviour
                 InstantiateFloor(new Vector2(floorPosition.x + floorSize, floorPosition.y));
                 break;
         }
-
     }
 
     private void InstantiateFloor(Vector2 position)
     {
         currentFloorImage = Instantiate(currentFloorImage, displayFloorPathUI);
-        if (recordFloorColorIndex >= recordFloorColor.Count)
+        DrawFloorColor(ref currentFloorImage);
+
+        currentFloorImageRect = currentFloorImage.GetComponent<RectTransform>();
+        currentFloorImageRect.anchoredPosition = position;
+    }
+
+    void DrawFloorColor(ref Image image)
+    {
+        recordFloorColorIndex++;
+        if (recordFloorColorIndex > recordFloorColor.Count)
         {
-            currentFloorImage.color = Color.white; 
+            currentFloorImage.color = Color.white;
         }
         else
         {
-            currentFloorImage.color = recordFloorColor[recordFloorColorIndex];
+            image.color = recordFloorColor[recordFloorColorIndex-1];
+            Debug.Log(image.color);
         }
-        
-        currentFloorImageRect = currentFloorImage.GetComponent<RectTransform>();
-        currentFloorImageRect.anchoredPosition = position;
     }
 
 
