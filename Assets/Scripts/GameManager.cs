@@ -73,7 +73,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // DisplayFloorPath.Instance.recordFloorColor.Add(floorPrefab.GetComponent<MeshRenderer>().sharedMaterial.color);
         OnChangeFloorColor?.Invoke(floorPrefab, EventArgs.Empty);
         currentGameObject = floorPrefab;
         floorList.Add(currentGameObject);
@@ -131,7 +130,6 @@ public class GameManager : MonoBehaviour
 
                 break;
             case GameState.GameOver:
-                // Debug.Log("gameover");
                 OnGameStateChange?.Invoke(this, EventArgs.Empty);
                 break;
         }

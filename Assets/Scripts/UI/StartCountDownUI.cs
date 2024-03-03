@@ -29,8 +29,6 @@ public class StartCountDownUI : MonoBehaviour
     {
         if (GameManager.Instance.IsCountDown())
         {
-            // Debug.Log("StartCountDownUI");
-
             Show();
         }
         else

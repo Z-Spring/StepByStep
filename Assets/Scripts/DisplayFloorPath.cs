@@ -38,7 +38,6 @@ public class DisplayFloorPath : MonoBehaviour
         GameManager.Instance.OnGameStarted += GameManager_OnGameStarted;
         presData = PressPath.Instance.GetDirection();
 
-        // SpawnFloorWithPressPath(presData[0].direction);
         Hide();
     }
 
@@ -143,7 +142,6 @@ public class DisplayFloorPath : MonoBehaviour
         else
         {
             image.color = recordFloorColor[recordFloorColorIndex-1];
-            Debug.Log(image.color);
         }
     }
 
