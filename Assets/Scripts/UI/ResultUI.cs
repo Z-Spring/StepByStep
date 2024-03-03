@@ -39,7 +39,7 @@ public class ResultUI : MonoBehaviour
         }
         else
         {
-            SuccessModeFailed();
+            SpecificModeFailed();
         }
     }
 
@@ -49,13 +49,7 @@ public class ResultUI : MonoBehaviour
         finalScoreText.enabled = true;
         finalScoreText.text = GetMaxScore().ToString();
         ShowCurrentGameObject();
-        if (isMaxScore)
-        {
-            StartCoroutine(ParticleSystemPlayCoroutine());
-            SoundManager.Instance.PlaySuccessSound();
-        }
-
-        SoundManager.Instance.PlayFailSound();
+        PlaySoundAndEffect();
     }
 
     int GetMaxScore()
@@ -73,7 +67,20 @@ public class ResultUI : MonoBehaviour
         return maxScore;
     }
 
-    void SuccessModeFailed()
+    void PlaySoundAndEffect()
+    {
+        if (isMaxScore)
+        {
+            StartCoroutine(ParticleSystemPlayCoroutine());
+            SoundManager.Instance.PlaySuccessSound();
+        }
+        else
+        {
+            SoundManager.Instance.PlayFailSound();
+        }
+    }
+
+    void SpecificModeFailed()
     {
         resultText.text = "FAILED";
         finalScoreText.enabled = false;
