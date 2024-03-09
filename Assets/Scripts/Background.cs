@@ -8,10 +8,12 @@ public class Background : MonoBehaviour
     private float changeBackgroundTimerMax = 20f;
     [SerializeField] private List<Color> backgroundColorList;
     private int backgroundColorListLength;
+    Camera mainCamera;
 
     private void Awake()
     {
         backgroundColorListLength = backgroundColorList.Count;
+        mainCamera = transform.GetComponent<Camera>();
     }
 
     private void Update()
@@ -31,6 +33,6 @@ public class Background : MonoBehaviour
     private void ChangeBackground()
     {
         int randomColorNumber = Random.Range(0, backgroundColorListLength);
-        Camera.main.backgroundColor = backgroundColorList[randomColorNumber];
+        mainCamera.backgroundColor = backgroundColorList[randomColorNumber];
     }
 }
