@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Pool;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,8 +14,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private FloorSO floorSO;
     [SerializeField] private Image floorImage;
     [SerializeField] float spawnFloorTimerMax = 1f;
-    [SerializeField] float fadeOutDuration = 0.7f;
+    [SerializeField] float spawnFloorTimerMin = 0.6f;
+    [SerializeField] float spawnFloorTimerAccelerate = 10f;
+    [SerializeField] float fadeOutDuration = 0.6f;
     [SerializeField] float waitTimeBeforeCountDown = 2f;
+    [SerializeField] bool isClearPlayerPrefs;
 
     private float spawnFloorTimer;
     private Vector3 floorPosition;
@@ -69,6 +74,7 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
         floorList = new List<GameObject>();
+        ClearPlayerPrefs();
     }
 
     private void Start()
@@ -140,12 +146,30 @@ public class GameManager : MonoBehaviour
     {
         if (gameState == GameState.PLaying)
         {
-            spawnFloorTimer -= Time.deltaTime;
+            SpawnFloorAccelerate();
+            spawnFloorTimer -= Time.fixedDeltaTime;
             if (spawnFloorTimer < 0)
             {
                 spawnFloorMethod();
                 ResetSpawnFloorTimer();
                 FadeAndDestroyFloor();
+            }
+        }
+    }
+
+// each 10 seconds, the spawn floor timer will be reduced by 0.1f
+    float gamePassTimer = 0;
+
+    void SpawnFloorAccelerate()
+    {
+        gamePassTimer += Time.fixedDeltaTime;
+        if (gamePassTimer > spawnFloorTimerAccelerate)
+        {
+            gamePassTimer = 0;
+            spawnFloorTimerMax -= Random.Range(0, 0.1f);
+            if (spawnFloorTimerMax < spawnFloorTimerMin)
+            {
+                spawnFloorTimerMax = spawnFloorTimerMin;
             }
         }
     }
@@ -306,5 +330,13 @@ public class GameManager : MonoBehaviour
     public GameMode GetGameMode()
     {
         return gameMode;
+    }
+
+    void ClearPlayerPrefs()
+    {
+        if (isClearPlayerPrefs)
+        {
+            PlayerPrefs.DeleteKey("MaxScore");
+        }
     }
 }
