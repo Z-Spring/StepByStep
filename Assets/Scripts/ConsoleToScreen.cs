@@ -23,26 +23,19 @@ public class ConsoleToScreen : MonoBehaviour
         Application.logMessageReceived -= Log;
     }
 
-    public void Log(string logString, string stackTrace, LogType type)
+    void Log(string logString, string stackTrace, LogType type)
     {
         foreach (var line in logString.Split('\n'))
         {
             if (line.Length <= maxLineLength)
             {
                 _lines.Add(line);
-                continue;
             }
-
-            var lineCount = line.Length / maxLineLength + 1;
-            for (int i = 0; i < lineCount; i++)
+            else
             {
-                if ((i + 1) * maxLineLength <= line.Length)
+                for (int i = 0; i < line.Length; i += maxLineLength)
                 {
-                    _lines.Add(line.Substring(i * maxLineLength, maxLineLength));
-                }
-                else
-                {
-                    _lines.Add(line.Substring(i * maxLineLength, line.Length - i * maxLineLength));
+                    _lines.Add(line.Substring(i, Math.Min(maxLineLength, line.Length - i)));
                 }
             }
         }
